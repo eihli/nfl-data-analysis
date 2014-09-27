@@ -1,0 +1,1 @@
+{'CurrentDay':new Date(2014,8,28,0,0,0),'CurrentSeason':'2014-2015','LeagueID':1,'CurrentWeek':'Week 4','CalHTML':'<div ID="cal"><table class="scores">\r\n	<tr class="datahead" align="center">\r\n		<t

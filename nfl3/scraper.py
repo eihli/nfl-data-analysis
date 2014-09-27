@@ -39,9 +39,30 @@ class Scraper():
         f = urllib.request.urlopen(self.select_year_url, data)
         json_data = f.read().decode('utf-8')
         return json_data
+    
+    def get_years_from_text(self, text):
+        p = re.compile(r'<option value="(\d{4,4}-\d{4,4})"')
+        years = p.findall(text)
+        return years
 
     def get_line_move_urls(self, data):
         p = re.compile(r'<a href="(http://www\.covers\.com/sports/odds/linehistory\.aspx.*?)".*?Line Moves')
         urls = p.findall(data)
         return urls
 
+    def get_list_of_weeks(self, data):
+        re.purge()
+        p = re.compile(r'<option value="(.{1,40}?)">(\D.{1,20})</option>')
+        list_of_weeks = p.findall(data)
+        l_weeks = []
+        for data, week in list_of_weeks:
+            data = data.rsplit(',')
+            league = data[0]
+            season = data[1]
+            gamedate = data[3] + '-' + data[4] + '-' + data[2]
+            l_weeks.append({'LeagueID': league,
+                'SeasonString': season,
+                'GameDate': gamedate,
+                'Week': week
+                })
+        return l_weeks
