@@ -50,10 +50,9 @@ class Scraper():
         urls = p.findall(data)
         return urls
 
-    def get_list_of_weeks(self, data):
-        re.purge()
+    def parse_weeks_from_data(self, year_data):
         p = re.compile(r'<option value="(.{1,40}?)">(\D.{1,20})</option>')
-        list_of_weeks = p.findall(data)
+        list_of_weeks = p.findall(year_data)
         l_weeks = []
         for data, week in list_of_weeks:
             data = data.rsplit(',')
@@ -66,3 +65,58 @@ class Scraper():
                 'Week': week
                 })
         return l_weeks
+    
+    def get_list_of_year_POST_requests(self):
+        start_year = '2014-2015'
+        html = self.get_data_for_year(start_year)
+        l_years = self.parse_years_from_data(html)
+        l_requests = []
+        for year in l_years:
+            data = {
+                    'league': '1',
+                    'SeasonString': year,
+                    'Year': '1',
+                    'Month': '1',
+                    'Day': '1'
+            }
+            data = urllib.parse.urlencode(data).replace('&', '\n').encode('utf-8')
+            l_requests.append(urllib.request.Request(self.select_year_url, data))
+        return l_requests
+
+    def get_list_of_week_POST_requests(self, year_data):
+        ld_weeks = self.parse_weeks_from_data(year_data)
+        l_requests = []
+        for week in ld_weeks:
+            d_data = week
+            if d_data['Week'] == 'HOF':
+                d_data['Week'] = 'Pre-Season Hall-of-Fame Week'
+            d_data['Season'] = d_data.pop('SeasonString')
+            d_data['Refresh'] = 'false'
+            d_data['LastUpdateTime'] = '01-01-1900'
+            d_data['type'] = 'Matchups'
+            d_data['RefreshStartTime'] = ''
+            d_data['conferenceID'] = ''
+            d_data = urllib.parse.urlencode(d_data).replace('&', '\n') \
+                    .replace('+', ' ').encode('utf-8')
+            l_requests.append(urllib.request.Request(self.select_week_url, d_data))
+        return l_requests
+
+    def get_list_of_line_move_links(self):
+        l_line_move_urls = []
+        l_year_requests = self.get_list_of_year_POST_requests()
+        for year_request in l_year_requests:
+            year_data = urllib.request.urlopen(year_request)\
+                .read().decode('utf-8')
+            l_week_requests = self.get_list_of_week_POST_requests(year_data)
+            for week_request in l_week_requests:
+                week_data = urllib.request.urlopen(week_request)\
+                    .read().decode('utf-8')
+                line_move_urls = self.parse_line_move_urls_from_data\
+                    (week_data)
+                l_line_move_urls += line_move_urls
+        f = open('line_move_links.txt', 'w')
+        for item in l_line_move_urls:
+            f.write("%s\n" % item)
+        f.close()
+
+
