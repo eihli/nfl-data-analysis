@@ -12,7 +12,7 @@ class Scraper():
         self.select_week_url = "http://scores.covers.com/ajax/SportsDirect.Controls.LiveScoresControls.Scoreboard,SportsDirect.Controls.LiveScoresControls.ashx?_method=UpdateScoreboard&_session=no"
         self.select_year_url= "http://scores.covers.com/ajax/SportsDirect.Controls.LiveScoresControls.ScoresCalendar,SportsDirect.Controls.LiveScoresControls.ashx?_method=changeDay&_session=no"
 
-    def get_json_from_page(self, week, league, season, gamedate):
+    def get_data_for_week(self, week, league, season, gamedate):
         str_html_year = ''
         data = {'LeagueID': league, 'GameDate': gamedate,
                 'Season': season, 'Refresh': '',
@@ -27,7 +27,7 @@ class Scraper():
         json_data = f.read().decode('utf-8')
         return json_data
     
-    def get_json_select_year(self, season_string):
+    def get_data_for_year(self, season_string):
         data = {
                 'league': '1',
                 'SeasonString': season_string,
@@ -40,12 +40,12 @@ class Scraper():
         json_data = f.read().decode('utf-8')
         return json_data
     
-    def get_years_from_text(self, text):
+    def parse_years_from_data(self, text):
         p = re.compile(r'<option value="(\d{4,4}-\d{4,4})"')
         years = p.findall(text)
         return years
 
-    def get_line_move_urls(self, data):
+    def parse_line_move_urls_from_data(self, data):
         p = re.compile(r'<a href="(http://www\.covers\.com/sports/odds/linehistory\.aspx.*?)".*?Line Moves')
         urls = p.findall(data)
         return urls
