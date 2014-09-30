@@ -60,7 +60,7 @@ class TestScraper(unittest.TestCase):
         for i in range(5):
             html = self.d[self.link_list[i]]
 
-    def test_parse_line_movement_game_date(self):
+    def test_parse_line_movement_gamedate(self):
         html = self.d[self.link_list[0]].decode('utf-8')
         result = scraper.Scraper.parse_line_movement_game_date(html)
         self.assertEqual(result.hour, datetime.time(hour=20).hour)
@@ -82,13 +82,19 @@ class TestScraper(unittest.TestCase):
                 test_parse_html)
         self.assertTrue(result['5Dimes.eu'][0].hour == 9)
 
-    def test_parse_point_spread(self):
-        result = scraper.Scraper.parse_point_spread(self.test_parse_html)
-        self.fail('Add a descriptive test here')
-
     def test_parse_line_movements(self):
         result = scraper.Scraper.parse_line_movements(self.test_parse_html)
-        self.fail('Add test dumbass stop being lazy')
+        self.assertEqual(result[0][0], '37575')
+
+    def test_save_line_movements_to_csv(self):
+        filename = 'test_csv_line_movements.csv'
+        result = scraper.Scraper.save_line_movements_to_csv([self.test_parse_html], filename)
+        f = open(filename)
+        csv = f.readlines()
+        print(csv[1])
+        f.close()
+        self.fail('This test sucks')
+
 
 
 #    def test_get_list_of_week_POST_requests(self):
