@@ -4,12 +4,12 @@ import os
 import shelve
 import unittest
 import urllib.request
-import scraper
+import covers_scraper
 
 class TestScraper(unittest.TestCase):
 
     def setUp(self):
-        self.scraper = scraper.Scraper()
+        self.scraper = covers_scraper.Scraper()
         self.d = shelve.open('line_movement_shelf')
         self.f = open('new_line_move_links.txt')
         self.link_list = [link.strip() for link in self.f]
@@ -63,24 +63,24 @@ class TestScraper(unittest.TestCase):
 
     def test_parse_line_movement_gamedate(self):
         html = self.d[self.link_list[0]].decode('utf-8')
-        result = scraper.Scraper.parse_line_movement_gamedate(html)
+        result = covers_scraper.Scraper.parse_line_movement_gamedate(html)
         self.assertEqual(result.hour, datetime.time(hour=20).hour)
 
     def test_parse_line_movement_teams(self):
         html = self.d[self.link_list[0]].decode('utf-8')
-        result = scraper.Scraper.parse_line_movement_teams(html)
+        result = covers_scraper.Scraper.parse_line_movement_teams(html)
         self.assertEqual(result[0], 'Miami')
         self.assertEqual(result[1], 'Dallas')
 
     def test_parse_line_movement_sportsbooks(self):
-        result = scraper.Scraper.parse_line_movement_sportsbooks(self.\
+        result = covers_scraper.Scraper.parse_line_movement_sportsbooks(self.\
                 test_html)
         self.assertTrue(any('5Dimes.eu' in i for i in result))
         self.assertTrue('07/25/13' in result['5Dimes.eu'])
 
     def test_parse_movement_datetime(self):
 
-        result = scraper.Scraper.parse_movement_datetime(self.\
+        result = covers_scraper.Scraper.parse_movement_datetime(self.\
                 test_html)
         self.assertTrue(result['5Dimes.eu'][0].hour == 9)
 
@@ -97,7 +97,7 @@ class TestScraper(unittest.TestCase):
         str_test_pointspread_price = '-110'
         str_test_overunder_price = '-110'
 
-        result = scraper.Scraper.parse_line_movements(self.test_html)
+        result = covers_scraper.Scraper.parse_line_movements(self.test_html)
         self.assertEqual(result[0][0], '37575')
         self.assertEqual(result[0][2], 'Dallas')
         self.assertTrue((str_test_eventid, dt_test_gamedate,
@@ -106,13 +106,13 @@ class TestScraper(unittest.TestCase):
             str_test_pointspread, str_test_pointspread_price, 
             str_test_overunder, str_test_overunder_price) in result)
 
-        result = scraper.Scraper.parse_line_movements(self.test_html_no_line_history)
+        result = covers_scraper.Scraper.parse_line_movements(self.test_html_no_line_history)
         self.assertEqual(result, None)
 
     def test_save_line_movements_to_csv(self):
 
         filename = 'test_csv_line_movements.csv'
-        result = scraper.Scraper.save_line_movements_to_csv([self.test_html], filename)
+        result = covers_scraper.Scraper.save_line_movements_to_csv([self.test_html], filename)
         f = open(filename)
         csv = f.readlines()
         print(csv[1])
