@@ -163,7 +163,7 @@ class Scraper():
         # If there is no game date, return none, skip the line...
         if not date:
             return None
-        home_team, away_team = Scraper.parse_line_movement_teams(html)
+        away_team, home_team = Scraper.parse_line_movement_teams(html)
 
         re_eventid = re.compile(r'<form method="post".*?.aspx\?eventId=(.*?)&')
         eventid = re_eventid.search(html).group(1)
@@ -188,7 +188,9 @@ class Scraper():
         re_hour_digit = re.compile(r' (\d*?):')
         re_point_spread = re.compile(r'(.*?)/')
         re_over_under_half_point = re.compile(r'..\..')
-        re_over_under = re.compile(r'..')
+        re_over_under = re.compile(r'..[A-Z]*')
+        re_pointspread_price = re.compile(r'/(-?\d*)')
+        re_overunder_price = re.compile(r'-?\d{3}((?= |$))|OFF')
 
         l_result = []
         
@@ -211,25 +213,31 @@ class Scraper():
                         '%m/%d/%y %I:%M:%S %p')
 
                 # Parse and format the point spread
-                point_spread = line_movement[1]
-                point_spread = re_point_spread.search(point_spread)
+                point_spread_result = line_movement[1]
+                point_spread = re_point_spread.search(point_spread_result)
                 if not point_spread:
                     point_spread = 'OFF'
+                    point_spread_price = 'OFF'
                 else:
                     point_spread = point_spread.group(1)
+                    point_spread_price = re_pointspread_price\
+                            .search(point_spread_result).group(1)
                 
                 # TODO: Parse and format point spread ODDS
 
                 # Parse and format Over Under
-                over_under = line_movement[2]
-                if re_over_under_half_point.search(over_under):
-                    over_under = re_over_under_half_point.search(over_under)
+                over_under_result = line_movement[2]
+
+                if re_over_under_half_point.search(over_under_result):
+                    over_under = re_over_under_half_point.search(over_under_result)
                 else:
-                    over_under = re_over_under.search(over_under)
+                    over_under = re_over_under.search(over_under_result)
+                    
                 over_under = over_under.group(0)
+                over_under_price = re_overunder_price.search(over_under_result).group(0)
 
                 l_result.append((eventid, date, home_team, away_team, 
-                    bookname, dt_line_movement, point_spread, over_under))
+                    bookname, dt_line_movement, point_spread, point_spread_price, over_under, over_under_price))
 
         return l_result
 
@@ -242,12 +250,10 @@ class Scraper():
                 continue
             l_results += l_line_movements
 
-        print(len(l_html))
-        print(len(l_results))
         with open(filename, 'w', newline='') as out:
             csv_out = csv.writer(out)
             csv_out.writerow(['eventid', 'gamedate', 'hometeam', 'awayteam',
-                'bookname', 'linemovementdate', 'pointspread', 'overunder'])
+                'bookname', 'linemovementdate', 'pointspread', 'pointspreadprice', 'overunder', 'overunderprice'])
             csv_out.writerows(l_results)
 #            for row in l_results:
 #                csv_out.writerow(row)
@@ -261,8 +267,7 @@ class Scraper():
         csv_filename = 'test2_csv.csv'
         l_html = []
         for url, html in d.items():
-            l_html.append(html.decode('utf-8').replace('\n', '').replace('\r', '').\
-                    replace('\t', ''))
+            l_html.append(html.decode('utf-8').replace('\n', '').replace('\r', '').replace('\t', ''))
 
         Scraper.save_line_movements_to_csv(l_html, csv_filename)
 
