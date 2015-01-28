@@ -1,8 +1,8 @@
 #NFL Data Analysis
 
 TODO:
-*Comment/Document
-*Use as part of an IPython notebook so results can be easily shared?
+* Comment/Document
+* Use as part of an IPython notebook so results can be easily shared?
 
 
 This is some old code that needs to be refactored.
